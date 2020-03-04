@@ -102,7 +102,7 @@ func Del(ctx iris.Context) {
 	}
 }
 
-// Monitor 检查所有程序
+// Monitor 遍历所有服务，收集相关信息并且返回
 func Monitor(ctx iris.Context) {
 	var res []iris.Map
 	for _, v := range hub.Servers {
@@ -151,6 +151,7 @@ func Stop(ctx iris.Context) {
 	}
 }
 
+// Start API请求开启一个服务，
 func Start(ctx iris.Context) {
 	appid := ctx.FormValue("appid")
 	if appid == "" {
@@ -173,6 +174,7 @@ func Start(ctx iris.Context) {
 	}
 }
 
+// Update 更新一个服务参数上下文
 func Update(ctx iris.Context) {
 	var Errchan = make(chan error)
 
@@ -203,12 +205,12 @@ func Update(ctx iris.Context) {
 
 // MainHandler 主服务
 func MainHandler(ctx iris.Context) {
+
 	path := strings.Split(ctx.Path(), "/")
 	suffix := path[len(path)-1]
 
 	if appid, exists := hub.Mux[suffix]; exists {
 		var start = time.Now()
-
 		switch hub.Servers[appid].cfg.Type {
 
 		case "minip":
@@ -294,6 +296,7 @@ func MainHandler(ctx iris.Context) {
 			}
 		case "official":
 			server := hub.Servers[appid].Wc.GetServer(ctx.Request(), ctx.ResponseWriter())
+
 			server.SetMessageHandler(func(msg message.MixMessage) *message.Reply {
 
 				if httpreg.MatchString(hub.Servers[appid].cfg.HandlerAddr) {
@@ -327,6 +330,13 @@ func MainHandler(ctx iris.Context) {
 				}
 				return NewTextMessage("未指定HandlerAddr")
 			})
+
+			err := server.Serve()
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			server.Send()
 		default:
 			panic(hub.Servers[appid])
 			return
@@ -337,6 +347,7 @@ func MainHandler(ctx iris.Context) {
 	}
 }
 
+// NewTextMessage 新的消息返回
 func NewTextMessage(text string) *message.Reply {
 	return &message.Reply{MsgType: message.MsgTypeText, MsgData: message.NewText(text)}
 }
