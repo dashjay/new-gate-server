@@ -22,5 +22,6 @@ func main() {
 	app.Any("/api/start", crs, WeHub.Start)
 	app.Any("/api/update", crs, WeHub.Update)
 	app.Any("/api/userinfo", crs, WeHub.GetUsersInfoTest)
+	app.Any("/api/login", crs, WeHub.GetUsersInfoTest)
 	app.Run(iris.Addr(fmt.Sprintf(":%d", configs.C.Port)), iris.WithOptimizations)
 }
